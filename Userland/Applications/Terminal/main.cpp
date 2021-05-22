@@ -30,6 +30,7 @@
 #include <LibGUI/Window.h>
 #include <LibGfx/Font.h>
 #include <LibGfx/Palette.h>
+#include <LibGfx/FontDatabase.h>
 #include <LibVT/TerminalWidget.h>
 #include <assert.h>
 #include <errno.h>
@@ -382,6 +383,38 @@ int main(int argc, char** argv)
         window->set_fullscreen(!window->is_fullscreen());
     }));
     view_menu.add_action(terminal.clear_including_history_action());
+    view_menu.add_action(GUI::Action::create("&Enlarge font", { Mod_Ctrl, Key_Equal }, Gfx::Bitmap::load_from_file("/res/icons/16x16/zoom-in.png"),
+        [&](auto&) {
+            auto tmp_font = Gfx::FontDatabase::the().get(terminal.font().family(), terminal.font().glyph_height()+2, terminal.font().weight());
+            if (tmp_font==nullptr) {
+                for (int i=4; i<=36; i+=2) {
+                    tmp_font = Gfx::FontDatabase::the().get(terminal.font().family(), terminal.font().glyph_height()+i, terminal.font().weight());
+                    if (tmp_font!=nullptr) {
+                        terminal.set_font_and_resize_to_fit(*tmp_font);
+                        break;
+                    }
+                }
+            } else {
+                terminal.set_font_and_resize_to_fit(*tmp_font);
+            }
+            window->resize(terminal.size());
+        }));
+    view_menu.add_action(GUI::Action::create("&Shrink font", { Mod_Ctrl, Key_Minus }, Gfx::Bitmap::load_from_file("/res/icons/16x16/zoom-out.png"),
+        [&](auto&) {
+            auto tmp_font = Gfx::FontDatabase::the().get(terminal.font().family(), terminal.font().glyph_height()-2, terminal.font().weight());
+            if (tmp_font==nullptr) {
+                for (int i=4; i<=36; i+=2) {
+                    tmp_font = Gfx::FontDatabase::the().get(terminal.font().family(), terminal.font().glyph_height()-i, terminal.font().weight());
+                    if (tmp_font!=nullptr) {
+                        terminal.set_font_and_resize_to_fit(*tmp_font);
+                        break;
+                    }
+                }
+            } else {
+                terminal.set_font_and_resize_to_fit(*tmp_font);
+            }
+            window->resize(terminal.size());
+        }));
     view_menu.add_separator();
     view_menu.add_action(pick_font_action);
 
